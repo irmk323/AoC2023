@@ -31,17 +31,14 @@ public class Main {
         Long res1 = part1(stringStream);
         System.out.println(res1);
     }
-    // List<String> immutable_list = List.of("apple", "banana", "orange");
     private static final List<Character> cards = List.of('A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2');
     public static Long part1(Stream<String> inputStream) {
         List<String[]> list = inputStream.map(s -> s.split(" "))
                 .sorted((handl1, handl2) -> compareHands(handl1[0], handl2[0]))
                 .collect(Collectors.toList());
 
-        List<String[]> reversedList = list.reversed();
-
-        return LongStream.range(0, reversedList.size())
-                .map(index -> (index + 1) * Long.parseLong(reversedList.get((int) index)[1]))
+        return LongStream.range(0, list.size())
+                .map(index -> (index + 1) * Long.parseLong(list.get((int) index)[1]))
                 .sum();
     }
 
@@ -61,13 +58,13 @@ public class Main {
         int type2 = getHandType(hand2);
 
         if(type1 != type2){
-            return type2 - type1;
+            return type1 - type2;
         }else{
             for(int i = 0; i< hand1.length(); i++){
                 int firstCardPosition = cards.indexOf(hand1.charAt(i));
                 int secondCardPosition = cards.indexOf(hand2.charAt(i));
                 if(firstCardPosition != secondCardPosition){
-                    return firstCardPosition - secondCardPosition;
+                    return secondCardPosition - firstCardPosition;
                 }
             }
         }
