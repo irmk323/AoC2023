@@ -27,17 +27,21 @@ public class Main {
             e.printStackTrace();
         }
         String[] arr = fileContent.split("\n");
-        Stream<String> stringStream = Arrays.stream(arr);
-        Long res1 = part1(stringStream);
-        System.out.println(res1);
+        Stream<String> stringStream1 = Arrays.stream(arr);
+        Stream<String> stringStream2 = Arrays.stream(arr);
+        Long part1 = solution(stringStream1, 1);
+        Long part2 = solution(stringStream2, 2);
+        System.out.println("part1: " +part1);
+        System.out.println("part2: " +part2);
     }
 
-    private static final List<Character> cards = List.of('2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A');
-    public static Long part1(Stream<String> inputStream) {
+    private static final List<Character> cardsPart1 = List.of('2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A');
+    private static final List<Character> cardsPart2 = List.of('J', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'Q', 'K', 'A');
+    public static Long solution(Stream<String> inputStream, int part) {
         List<String[]> list = inputStream.map(s -> s.split(" "))
                 // if compareHands < 0, sorted as hand1 ,hand2
                 // if compareHands > 0   hand2, hand1
-                .sorted((handl1, handl2) -> compareHands(handl1[0], handl2[0]))
+                .sorted((handl1, handl2) -> compareHands(handl1[0], handl2[0], part))
                 .collect(Collectors.toList());
 
         return LongStream.range(0, list.size())
@@ -45,29 +49,47 @@ public class Main {
                 .sum();
     }
 
-    private static Map<Character, Integer> getCardFrequencyMap(String hand) {
-        return hand.chars()
-                .mapToObj(c -> (char) c)
+
+    private static Map<Character, Integer> getCardFrequencyMap(String hand, int part) {
+        Map<Character, Integer> frequencyMap  = hand.chars()
+                .mapToObj(c -> (char) c) 
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.summingInt(c -> 1)));
+        if(part == 2){
+            int jCount = frequencyMap.getOrDefault('J', 0);
+            frequencyMap.remove('J');
+            char maxFreqChar = frequencyMap.entrySet().stream()
+                    .max(Map.Entry.comparingByValue())
+                    .map(Map.Entry::getKey)
+                    .orElse(hand.charAt(0)) ;
+
+                frequencyMap.put(maxFreqChar, frequencyMap.getOrDefault(maxFreqChar, 0) + jCount);
+        }
+        return frequencyMap;
     }
 
-    private static int getHandType(String hand) {
-        return getCardFrequencyMap(hand).values().stream().mapToInt(value -> value * value).sum();
+    private static int getHandType(String hand, int part) {
+        return getCardFrequencyMap(hand, part).values().stream().mapToInt(value -> value * value).sum();
     }
     // value -> value * value ... This process makes the number of occurrences of a card have a greater 
     // impact on the evaluation of the type of card in the hand
 
 
-    private static int compareHands(String hand1, String hand2 ){
-        int type1 = getHandType(hand1);
-        int type2 = getHandType(hand2);
-
+    private static int compareHands(String hand1, String hand2, int part ){
+        int type1 = getHandType(hand1, part);
+        int type2 = getHandType(hand2, part);
+        List<Character> cards = new ArrayList<>();
         // if it's minus, type 1 is earlier, 
         // if it's plus, type 1 is later.
         if(type1 != type2){
             return type1 - type2;
         }else{
+            if(part == 1){
+                cards = cardsPart1;
+            }else{
+                cards = cardsPart2;
+            }
             for(int i = 0; i< hand1.length(); i++){
+
                 int firstCardPosition = cards.indexOf(hand1.charAt(i));
                 int secondCardPosition = cards.indexOf(hand2.charAt(i));
 
@@ -83,14 +105,5 @@ public class Main {
         return 0;
     }
 
-    private static int part2( long time , long record){
-        int totalCount = 0;
-            for(long j= 1; j< time; j++){
-                long remain = time - j;
-                if(remain * j  > record){
-                    totalCount++;
-                }
-            }
-        return totalCount;
-    }
+
 }
