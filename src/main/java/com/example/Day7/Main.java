@@ -31,9 +31,12 @@ public class Main {
         Long res1 = part1(stringStream);
         System.out.println(res1);
     }
-    private static final List<Character> cards = List.of('A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2');
+
+    private static final List<Character> cards = List.of('2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A');
     public static Long part1(Stream<String> inputStream) {
         List<String[]> list = inputStream.map(s -> s.split(" "))
+                // if compareHands < 0, sorted as hand1 ,hand2
+                // if compareHands > 0   hand2, hand1
                 .sorted((handl1, handl2) -> compareHands(handl1[0], handl2[0]))
                 .collect(Collectors.toList());
 
@@ -51,20 +54,29 @@ public class Main {
     private static int getHandType(String hand) {
         return getCardFrequencyMap(hand).values().stream().mapToInt(value -> value * value).sum();
     }
+    // value -> value * value ... This process makes the number of occurrences of a card have a greater 
+    // impact on the evaluation of the type of card in the hand
 
 
     private static int compareHands(String hand1, String hand2 ){
         int type1 = getHandType(hand1);
         int type2 = getHandType(hand2);
 
+        // if it's minus, type 1 is earlier, 
+        // if it's plus, type 1 is later.
         if(type1 != type2){
             return type1 - type2;
         }else{
             for(int i = 0; i< hand1.length(); i++){
                 int firstCardPosition = cards.indexOf(hand1.charAt(i));
                 int secondCardPosition = cards.indexOf(hand2.charAt(i));
+
+                // T55J5 and QQQJA are both three of a kind. 
+                // QQQJA has a stronger first card, so it gets rank 5 and T55J5 gets rank 4.
+                // based on the order of "cards", 
+                // T is 8, Q is 10 so 8 - 10 = -2 , T55J5 is placed earlier position
                 if(firstCardPosition != secondCardPosition){
-                    return secondCardPosition - firstCardPosition;
+                    return  firstCardPosition - secondCardPosition;
                 }
             }
         }
